@@ -5,104 +5,89 @@ from ..entidades import alimentos
 from ..services import alimentos_service
 from api import api
 
-
 class AlimentosList(Resource):
 
-    # Mostra toda as informações dentro da tebela
+
     def get(self):
-        alimento = alimentos_service.listar_alimentos()
-        cs = alimentos_schema.AlimentosSchema(many=True)
-        return make_response(cs.jsonify(alimento), 201)
+        try:
+            alimentos = alimentos_service.listar_alimentos()
+            al = alimentos_schema.AlimentoSchema(many=True)
+            return make_response(al.jsonify(alimentos), 200)
+        except Exception as e:
+            return make_response(jsonify({"error": str(e)}), 500)
 
-    # Cria um novo registro dentro da tabela
+
+
     def post(self):
-        cs = alimentos_schema.AlimentosSchema()
-        validate = cs.validate(request.json)
-        if validate:
-            return make_response(jsonify(validate), 400)
-        else:
-            nome = request.json["nome"]
-            caloria = request.json["caloria"]
-            proteina = request.json["proteina"]
-            carboidrato = request.json["carboidrato"]
-            gordura = request.json["gordura"]
-            fibra = request.json["fibra"]
-            grupo = request.json["grupo"]
-            grama = request.json["grama"]
-            colherSopaCheia = request.json["colherSopaCheia"]
-            unidadeFatiaMedida = request.json["unidadeFatiaMedida"]
-            mililitros = request.json["mililitros"]
+        al = alimentos_schema.AlimentoSchema()
+        try:
+            validate = al.validate(request.json)
+            if validate:
+                return make_response(jsonify(validate), 400)
+            else:
+                dados_alimento = request.json
+
+                alimento_novo = alimentos.Alimentos(nome=dados_alimento["nome"],
+                                                    caloria=dados_alimento["caloria"],
+                                                    proteina=dados_alimento["proteina"])
+
+                resultado = alimentos_service.cadastrar_alimento(alimento_novo)
+                return make_response(al.jsonify(resultado), 201)
+
+        except Exception as e:
+            return make_response(jsonify({"error": str(e)}), 500)
 
 
-            alimento_novo = alimentos.Alimentos(nome=nome,
-                                                caloria=caloria,
-                                                proteina=proteina,
-                                                carboidrato=carboidrato,
-                                                gordura=gordura,
-                                                fibra=fibra,
-                                                grupo=grupo,
-                                                grama=grama,
-                                                colherSopaCheia=colherSopaCheia,
-                                                unidadeFatiaMedida=unidadeFatiaMedida,
-                                                mililitros=mililitros)
+class AlimentosDetail(Resource):
 
-
-            resultado = alimentos_service.cadastrar_alimento(alimento_novo)
-            return make_response(cs.jsonify(resultado), 201)
-
-
-class AlimentoDetail(Resource):
     def get(self, id):
-        alimento = alimentos_service.listar_alimentos_id(id)
-        if alimento is None:
-            return make_response(jsonify("Alimento Não Encontrado"), 404)
-        cs = alimentos_schema.AlimentosSchema()
-        return make_response(cs.jsonify(alimento), 200)
+        try:
+            alimento = alimentos_service.listar_alimento_id(id)
+            if not alimento:
+                return make_response(jsonify({"error": "Alimento não encontrado"}), 404)
+            al = alimentos_schema.AlimentoSchema()
+            return make_response(al.jsonify(alimento), 200)
+
+        except Exception as e:
+            return make_response(jsonify({"error": str(e)}), 500)
+
 
     def put(self, id):
-        alimento_bd = alimentos_service.listar_alimentos_id(id)
-        if alimento_bd is None:
-            return make_response(jsonify("Alimento Não Encontrado"), 404)
-        cs = alimentos_schema.AlimentosSchema()
-        validate = cs.validate(request.json)
-        if validate:
-            return make_response(jsonify(validate), 400)
-        else:
-            nome = request.json["nome"]
-            caloria = request.json["caloria"]
-            proteina = request.json["proteina"]
-            carboidrato = request.json["carboidrato"]
-            gordura = request.json["gordura"]
-            fibra = request.json["fibra"]
-            grupo = request.json["grupo"]
-            grama = request.json["grama"]
-            colherSopaCheia = request.json["colherSopaCheia"]
-            unidadeFatiaMedida = request.json["unidadeFatiaMedida"]
-            mililitros = request.json["mililitros"]
+        try:
+            alimento_bd = alimentos_service.listar_alimento_id(id)
+            if not alimento_bd:
+                return make_response(jsonify({"error": "Alimento não encontrado"}), 404)
+
+            al = alimentos_schema.AlimentoSchema()
+            validate = al.validate(request.json)
+            if validate:
+                return make_response(jsonify(validate), 400)
+            else:
+                dados_alimento = request.json
+                alimento_novo = alimentos.Alimentos(nome=dados_alimento["nome"],
+                                                    caloria=dados_alimento["caloria"],
+                                                    proteina=dados_alimento["proteina"])
 
 
-            alimento_novo = alimentos.Alimentos(nome=nome,
-                                                caloria=caloria,
-                                                proteina=proteina,
-                                                carboidrato=carboidrato,
-                                                gordura=gordura,
-                                                fibra=fibra,
-                                                grupo=grupo,
-                                                grama=grama,
-                                                colherSopaCheia=colherSopaCheia,
-                                                unidadeFatiaMedida=unidadeFatiaMedida,
-                                                mililitros=mililitros)
+                resultado = alimentos_service.atualizar_alimento(alimento_bd, alimento_novo)
+                return make_response(al.jsonify(resultado), 201)
 
-            resultado = alimentos_service.atualizar_alimento(alimento_bd, alimento_novo)
-            return make_response(cs.jsonify(resultado), 201)
+
+        except Exception as e:
+            return make_response(jsonify({"error": str(e)}), 500)
+
 
     def delete(self, id):
-        alimento = alimentos_service.listar_alimentos_id(id)
-        if alimento is None:
-            return make_response(jsonify("Alimento Não Encontrado"), 404)
-        alimentos_service.exclui_alimento(alimento)
-        return make_response(jsonify(""), 204)
+        try:
+            alimento = alimentos_service.listar_alimento_id(id)
+            if not alimento:
+                return make_response(jsonify({"error": "Alimento não encontrado"}), 404)
 
+            alimentos_service.exclui_alimento(alimento)
+            return make_response(jsonify({"message": "Alimento excluído com sucesso"}), 204)
 
-api.add_resource(AlimentosList, '/alimentos')
-api.add_resource(AlimentoDetail, '/alimentos/<int:id>')
+        except Exception as e:
+            return make_response(jsonify({"error": str(e)}), 500)
+
+api.add_resource(AlimentosList, '/alimento')
+api.add_resource(AlimentosDetail, '/alimento/<int:id>')

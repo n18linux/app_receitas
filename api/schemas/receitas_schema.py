@@ -1,29 +1,19 @@
-# Arquivo: schemas/receitas_schema.py
 from api import ma
-from ..models import receitas_model
-from ..schemas.alimentos_schema import AlimentosSchema
 from marshmallow import fields
+from api.models import receitas_model
+from api.schemas import alimentos_schema
+from api.schemas import refeicao_schema
 
-class ReceitasSchema(ma.SQLAlchemyAutoSchema):
+class ReceitaSchema(ma.SQLAlchemyAutoSchema):
+
+    alimento = ma.Nested('AlimentoSchema', only=("nome", "caloria", "proteina"))
+
     class Meta:
-        model = receitas_model.Receitas
+        model =  receitas_model.Receita
         load_instance = True
+        include_fk = True
 
-    nome = fields.String(required=True)
-    caloria = fields.Float(required=True)
-    proteina = fields.Float(required=True)
-    carboidrato = fields.Float(required=True)
-    gordura = fields.Float(required=True)
-    fibra = fields.Float(required=True)
-    grupo = fields.String(required=True)
-    grama = fields.Float(required=True)
-    colherSopa = fields.Float(required=True)
-    unidadePedacoMedida = fields.Float(required=True)
-    tempoPreparo = fields.String(required=True)
-    modo_preparo = fields.String(required=True)
-    imagem = fields.String(required=True)
-    ingredientes = fields.Nested(AlimentosSchema, many=True, only=('id', 'nome', 'caloria', 'proteina', 'carboidrato',
-                                                                  'gordura', 'fibra', 'grupo', 'grama', 'colherSopa',
-                                                                  'unidadePedacoMedida', 'mililitros'))
-
-
+    nome = fields.String(required=False)
+    caloria = fields.Float(required=False)
+    proteina = fields.Float(required=False)
+    alimentos_id = fields.Integer(required=True)

@@ -2,118 +2,107 @@ from flask_restful import Resource
 from ..schemas import receitas_schema
 from flask import request, make_response, jsonify
 from ..entidades import receitas
-from ..services import receitas_service
+from ..services import receitas_service, alimentos_service
 from api import api
-
 
 class ReceitasList(Resource):
 
-    # Mostra toda as informações dentro da tebela
+
     def get(self):
-        receita = receitas_service.listar_receitas()
-        cs = receitas_schema.ReceitasSchema(many=True)
-        return make_response(cs.jsonify(receitas), 201)
+        try:
+            receitas = receitas_service.listar_receitas()
+            re = receitas_schema.ReceitaSchema(many=True)
+            return make_response(re.jsonify(receitas), 200)
+        except Exception as e:
+            return make_response(jsonify({"error": str(e)}), 500)
 
-    # Cria um novo registro dentro da tabela
+
+
     def post(self):
-        cs = receitas_schema.ReceitasSchema()
-        validate = cs.validate(request.json)
-        if validate:
-            return make_response(jsonify(validate), 400)
-        else:
-            nome = request.json["nome"]
-            caloria = request.json["caloria"]
-            proteina = request.json["proteina"]
-            carboidrato = request.json["carboidrato"]
-            gordura = request.json["gordura"]
-            fibra = request.json["fibra"]
-            grupo = request.json["grupo"]
-            grama = request.json["grama"]
-            colherSopa = request.json["colherSopa"]
-            unidadeFatiaMedida = request.json["unidadeFatiaMedida"]
-            tempoPreparo = request.json["tempoPreparo"]
-            modo_preparo = request.json["modo_preparo"]
-            imagem = request.json["imagem"]
-            alimentos = request.json["alimentos"]
+        re = receitas_schema.ReceitaSchema()
+        try:
+            validate = re.validate(request.json)
+            if validate:
+                return make_response(jsonify(validate), 400)
+            else:
+                _nome = request.json["nome"]
+                _caloria = request.json["caloria"]
+                _proteina = request.json["proteina"]
+                _alimentos_id = request.json["alimentos_id"]
 
+                # Verifico se o ID do alimento existe na tb_alimento
+                if alimentos_service.listar_alimento_id(_alimentos_id) is None:
+                    return make_response("Alimento não existe", 404)
+                else:
+                    receita_nova = receitas.Receitas(nome=_nome,
+                                                     caloria=_caloria,
+                                                     proteina=_proteina,
+                                                     alimentos_id=_alimentos_id)
 
-            receita_novo = receitas.Receitas(nome=nome,
-                                                caloria=caloria,
-                                                proteina=proteina,
-                                                carboidrato=carboidrato,
-                                                gordura=gordura,
-                                                fibra=fibra,
-                                                grupo=grupo,
-                                                grama=grama,
-                                                colherSopa=colherSopa,
-                                                unidadeFatiaMedida=unidadeFatiaMedida,
-                                                tempoPreparo=tempoPreparo,
-                                                modo_preparo=modo_preparo,
-                                                imagem=imagem,
-                                                alimentos=alimentos)
+                resultado = receitas_service.cadastrar_receita(receita_nova)
+                return make_response(re.jsonify(resultado), 201)
 
-
-            resultado = receitas_service.cadastrar_receita(receita_novo)
-            return make_response(cs.jsonify(resultado), 201)
+        except Exception as e:
+            return make_response(jsonify({"error": str(e)}), 500)
 
 
 class ReceitasDetail(Resource):
+
     def get(self, id):
-        receita = receitas_service.listar_receitas_id(id)
-        if receita is None:
-            return make_response(jsonify("Receita Não Encontrado"), 404)
-        cs = receitas_schema.ReceitasSchema()
-        return make_response(cs.jsonify(receita), 200)
+        try:
+            receitas = receitas_service.listar_receita_id(id)
+            if not receitas:
+                return make_response(jsonify({"error": "Receita não encontrada"}), 404)
+            re = receitas_schema.ReceitaSchema()
+            return make_response(re.jsonify(receitas), 200)
+
+        except Exception as e:
+            return make_response(jsonify({"error": str(e)}), 500)
+
 
     def put(self, id):
-        receita_bd = receitas_service.listar_receitas_id(id)
-        if receita_bd is None:
-            return make_response(jsonify("Receita Não Encontrado"), 404)
-        cs = receitas_schema.ReceitasSchema()
-        validate = cs.validate(request.json)
-        if validate:
-            return make_response(jsonify(validate), 400)
-        else:
-            nome = request.json["nome"]
-            caloria = request.json["caloria"]
-            proteina = request.json["proteina"]
-            carboidrato = request.json["carboidrato"]
-            gordura = request.json["gordura"]
-            fibra = request.json["fibra"]
-            grupo = request.json["grupo"]
-            grama = request.json["grama"]
-            colherSopa = request.json["colherSopa"]
-            unidadeFatiaMedida = request.json["unidadeFatiaMedida"]
-            tempoPreparo = request.json["tempoPreparo"]
-            modo_preparo = request.json["modo_preparo"]
-            imagem = request.json["imagem"]
-            alimentos = request.json["alimentos"]
+        try:
+            receita_bd = receitas_service.listar_receita_id(id)
+            if not receita_bd:
+                return make_response(jsonify({"error": "Receita não encontrada"}), 404)
 
-            receita_novo = receitas.Receitas(nome=nome,
-                                             caloria=caloria,
-                                             proteina=proteina,
-                                             carboidrato=carboidrato,
-                                             gordura=gordura,
-                                             fibra=fibra,
-                                             grupo=grupo,
-                                             grama=grama,
-                                             colherSopa=colherSopa,
-                                             unidadeFatiaMedida=unidadeFatiaMedida,
-                                             tempoPreparo=tempoPreparo,
-                                             modo_preparo=modo_preparo,
-                                             imagem=imagem,
-                                             alimentos=alimentos)
+            re = receitas_schema.ReceitaSchema()
+            validate = re.validate(request.json)
+            if validate:
+                return make_response(jsonify(validate), 400)
+            else:
+                _nome = request.json["nome"]
+                _caloria = request.json["caloria"]
+                _proteina = request.json["proteina"]
+                _alimentos_id = request.json["alimentos_id"]
 
-            resultado = receitas_service.atualizar_receita(receita_bd, receita_novo)
-            return make_response(cs.jsonify(resultado), 201)
+                # Verifico se o ID do alimento existe na tb_alimento
+                if alimentos_service.listar_alimento_id(_alimentos_id) is None:
+                    return make_response("Alimento não existe", 404)
+                else:
+                    receita_nova = receitas.Receitas(nome=_nome,
+                                                     caloria=_caloria,
+                                                     proteina=_proteina,
+                                                     alimentos_id=_alimentos_id)
+
+                resultado = receitas_service.atualizar_receita(receita_bd, receita_nova)
+                return make_response(re.jsonify(resultado), 201)
+
+        except Exception as e:
+            return make_response(jsonify({"error": str(e)}), 500)
+
 
     def delete(self, id):
-        receita = receitas_service.listar_receitas_id(id)
-        if receita is None:
-            return make_response(jsonify("Receita Não Encontrado"), 404)
-        receitas_service.excluir_receita(receita)
-        return make_response(jsonify(""), 204)
+        try:
+            receita = receitas_service.listar_receita_id(id)
+            if not receita:
+                return make_response(jsonify({"error": "Receita não encontrada"}), 404)
 
+            receitas_service.exclui_receita(receita)
+            return make_response(jsonify({"message": "Receitao excluída com sucesso"}), 204)
 
-api.add_resource(ReceitasList, '/receitas')
-api.add_resource(ReceitasDetail, '/receitas/<int:id>')
+        except Exception as e:
+            return make_response(jsonify({"error": str(e)}), 500)
+
+api.add_resource(ReceitasList,'/receita')
+api.add_resource(ReceitasDetail,'/receita/<int:id>')

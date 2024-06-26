@@ -1,20 +1,15 @@
 from api import ma
-from ..models import alimentos_model
+from api.models  import alimentos_model
 from marshmallow import fields
+from api.schemas import receitas_schema
 
-class AlimentosSchema(ma.SQLAlchemyAutoSchema):
+class AlimentoSchema(ma.SQLAlchemyAutoSchema):
+    #receitas = ma.Nested(receitas_schema.ReceitaSchema, many=True, only=("nome", "caloria", "proteina"))
+    #receitas = ma.Nested('ReceitaSchema', only=("nome", "caloria"))
     class Meta:
-        model = alimentos_model.Alimentos
+        model = alimentos_model.Alimento
         load_instance = True
 
     nome = fields.String(required=True)
-    caloria = fields.Float(required=False)
-    proteina = fields.Float(required=False)
-    carboidrato = fields.Float(required=False)
-    gordura = fields.Float(required=False)
-    fibra = fields.Float(required=False)
-    grupo = fields.String(required=False)
-    grama = fields.Float(required=False)
-    colherSopaCheia = fields.Float(required=False)
-    unidadePedacoMedida = fields.Float(required=False)
-    milimetros = fields.Float(required=False)
+    caloria = fields.Float(required=True)
+    proteina = fields.Float(required=True)

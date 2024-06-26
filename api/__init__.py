@@ -24,3 +24,7 @@ from .views import alimentos_view
 
 from .models import receitas_model
 from .views import receitas_view
+
+
+from .models import refeicao_model
+from .views import refeicao_view

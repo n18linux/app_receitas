@@ -1,11 +1,14 @@
 DEBUG=True
+USERNAME='root'
+PASSWORD=''
+SERVER='localhost'
+DB='db_app_receitas'
 
-USERNAME = 'root'
-PASSWORD = ''
-SERVER = 'localhost'
-DB = 'db_app_receitas'
+SQLALCHEMY_DATABASE_URI=f'mysql://{USERNAME}:{PASSWORD}@{SERVER}/{DB}'
 
-SQLALCHEMY_DATABASE_URI = f'mysql://{USERNAME}:{PASSWORD}@{SERVER}/{DB}'
-SQLALCHEMY_TRACK_MODIFICATIONS = True
+# Permite que as migrações aconteçam em tempo real entre as tabelas mysql.
+SQLALCHEMY_TRACK_MODIFICATIONS=True
 
-SECRET_KEY = 'chave_secreta1'
+
+# Chave para funçõesd importantes da aplicação
+SECRET_KEY='chave_secreta1'
